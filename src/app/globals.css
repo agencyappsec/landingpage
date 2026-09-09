@@ -176,3 +176,59 @@ body {
     animation: none;
   }
 }
+
+/* ---------- Carousel slide transition ---------- */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(var(--slide-from, 24px));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.slide-in {
+  animation: slideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide-in {
+    animation: none;
+  }
+}
+
+/* ---------- Metallic edge ---------- */
+/*
+ * A gradient border, which CSS has no single property for. Two backgrounds are
+ * layered: the flat fill clipped to the padding box, the gradient clipped to
+ * the border box, with a transparent border letting the gradient show through
+ * at the edge alone. The stops alternate bright and dark rather than running
+ * light to dark, so the edge reads as brushed metal catching the light instead
+ * of a flat grey line. Radius comes from the element's own rounded-* class.
+ */
+.metal-edge {
+  /*
+   * The fill is a variable so a card can brighten on hover or when open. A
+   * plain background-color could not: the gradient fill layer is painted over
+   * it, so anything set behind would never be seen.
+   */
+  --metal-fill: #050505;
+  border: 1px solid transparent;
+  background-image:
+    linear-gradient(var(--metal-fill), var(--metal-fill)),
+    linear-gradient(
+      145deg,
+      #f4f5f7 0%,
+      #74787d 13%,
+      #dfe2e6 27%,
+      #4b4f54 42%,
+      #eef0f2 57%,
+      #63676c 72%,
+      #cfd2d6 86%,
+      #808489 100%
+    );
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}

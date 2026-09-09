@@ -85,7 +85,7 @@ export function FitForm() {
     */
     return (
       <div
-        className={`mt-14 rounded-2xl border border-line bg-white/[0.02] p-6 sm:p-8 ${
+        className={`metal-edge mt-14 rounded-2xl p-6 sm:p-8 ${
           showCalendar
             ? "relative left-1/2 w-[min(calc(100vw-3rem),1180px)] -translate-x-1/2"
             : "mx-auto w-full max-w-xl"
@@ -110,7 +110,7 @@ export function FitForm() {
               */
               <Cal
                 calLink={calLink!}
-                className="mt-5 min-h-[320px] w-full rounded-xl border border-line bg-black"
+                className="metal-edge mt-5 min-h-[320px] w-full rounded-xl [--metal-fill:#000000]"
                 config={{
                   layout: "month_view",
                   name: contact.name,
@@ -144,7 +144,7 @@ export function FitForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mx-auto mt-14 flex w-full max-w-xl flex-col rounded-2xl border border-line bg-white/[0.02] p-6 sm:aspect-square sm:p-8"
+      className="metal-edge mx-auto mt-14 flex w-full max-w-xl flex-col rounded-2xl p-6 sm:aspect-square sm:p-8"
     >
       {/* progress */}
       <div className="flex items-center gap-4">
@@ -179,8 +179,10 @@ export function FitForm() {
                     type="button"
                     aria-pressed={active}
                     onClick={() => choose(question.id, option)}
-                    className={`flex min-h-11 flex-1 items-center rounded-xl border border-white bg-white px-5 text-left text-sm text-black transition hover:bg-white/90 sm:text-base ${
-                      active ? "font-medium ring-2 ring-white/40" : ""
+                    className={`flex min-h-11 flex-1 items-center rounded-xl border bg-black px-5 text-left text-sm transition sm:text-base ${
+                      active
+                        ? "border-white/70 font-medium text-white"
+                        : "border-line text-white/70 hover:border-white/30 hover:bg-white/[0.03] hover:text-white"
                     }`}
                   >
                     {option}

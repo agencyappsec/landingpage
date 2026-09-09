@@ -26,7 +26,7 @@ export function Checks() {
             {checks.map((check, i) => (
               <li
                 key={check.question}
-                className="reveal-item rounded-2xl border border-line bg-white/[0.02] p-6 transition hover:border-white/15 hover:bg-white/[0.04]"
+                className="metal-edge reveal-item rounded-2xl p-6 transition hover:[--metal-fill:#101013]"
                 style={{ "--reveal-delay": `${i * 70}ms` } as React.CSSProperties}
               >
                 <h3 className="text-lg leading-snug font-medium tracking-[-0.01em] text-white">

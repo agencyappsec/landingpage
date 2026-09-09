@@ -19,7 +19,7 @@ export function Service() {
               {offers.map((offer, i) => (
                 <li
                   key={offer.name}
-                  className="reveal-item flex flex-col rounded-2xl border border-line bg-white/[0.02] p-6 transition hover:border-white/15 hover:bg-white/[0.04]"
+                  className="metal-edge reveal-item flex flex-col rounded-2xl p-6 transition hover:[--metal-fill:#101013]"
                   style={{ "--reveal-delay": `${i * 90}ms` } as React.CSSProperties}
                 >
                   <h3 className="font-brand text-xl font-semibold tracking-[-0.01em] text-white">

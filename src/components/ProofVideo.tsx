@@ -45,7 +45,7 @@ export function ProofVideo({
           player derives its own height from the container width; never set an
           explicit height on it.
         */}
-        <div className="aspect-video w-full overflow-hidden rounded-xl border border-line">
+        <div className="metal-edge aspect-video w-full overflow-hidden rounded-xl">
           {isConfigured ? <WistiaPlayer mediaId={MEDIA_ID as string} /> : null}
         </div>
       </div>

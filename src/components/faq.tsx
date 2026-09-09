@@ -39,10 +39,8 @@ export function Faq() {
               return (
                 <li
                   key={faq.question}
-                  className={`reveal-item rounded-2xl border bg-white/[0.02] transition ${
-                    isOpen
-                      ? "border-white/15 bg-white/[0.04]"
-                      : "border-line hover:border-white/15 hover:bg-white/[0.04]"
+                  className={`metal-edge reveal-item rounded-2xl transition ${
+                    isOpen ? "[--metal-fill:#131316]" : "hover:[--metal-fill:#101013]"
                   }`}
                   style={
                     { "--reveal-delay": `${i * 60}ms` } as React.CSSProperties

@@ -1,0 +1,49 @@
+name: strix-security-scan
+
+# Run this whenever someone opens or updates a pull request.
+on: pull_request
+
+# This job only needs to read the code.
+permissions:
+  contents: read
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      # Copy the repo onto the machine GitHub gave us.
+      - name: Check out the code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Strix is a Python program, so we need Python first.
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Version pinned so this run behaves the same next week.
+      - name: Install Strix
+        run: pip install "strix-agent==1.5.3"
+
+      # continue-on-error: even if the scan finds problems, don't fail here.
+      - name: Run the scan
+        continue-on-error: true
+        env:
+          STRIX_LLM: ${{ secrets.STRIX_LLM }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+        run: |
+          strix -n -t ./ \
+            --scan-mode quick \
+            --instruction-file .strix/instructions.md \
+            --max-budget 2
+
+      # if: always() — upload even if the scan crashed, so we can look at it.
+      - name: Upload the findings
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: strix-runs
+          path: strix_runs/
+          if-no-files-found: warn

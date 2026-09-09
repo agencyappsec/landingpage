@@ -208,27 +208,36 @@ body {
  * light to dark, so the edge reads as brushed metal catching the light instead
  * of a flat grey line. Radius comes from the element's own rounded-* class.
  */
-.metal-edge {
-  /*
-   * The fill is a variable so a card can brighten on hover or when open. A
-   * plain background-color could not: the gradient fill layer is painted over
-   * it, so anything set behind would never be seen.
-   */
-  --metal-fill: #050505;
-  border: 1px solid transparent;
-  background-image:
-    linear-gradient(var(--metal-fill), var(--metal-fill)),
-    linear-gradient(
-      145deg,
-      #f4f5f7 0%,
-      #74787d 13%,
-      #dfe2e6 27%,
-      #4b4f54 42%,
-      #eef0f2 57%,
-      #63676c 72%,
-      #cfd2d6 86%,
-      #808489 100%
-    );
-  background-origin: border-box;
-  background-clip: padding-box, border-box;
+/*
+ * In @layer components, not unlayered, so utility classes still win. Tailwind
+ * puts utilities in their own layer, and unlayered CSS beats every layer no
+ * matter the specificity: left outside, this rule's default fill silently
+ * overrode every [--metal-fill:*] utility, so hover, open and selected states
+ * all rendered at the default. A selected option came out black-on-black.
+ */
+@layer components {
+  .metal-edge {
+    /*
+     * The fill is a variable so a card can brighten on hover or when open. A
+     * plain background-color could not: the gradient fill layer is painted over
+     * it, so anything set behind would never be seen.
+     */
+    --metal-fill: #050505;
+    border: 1px solid transparent;
+    background-image:
+      linear-gradient(var(--metal-fill), var(--metal-fill)),
+      linear-gradient(
+        145deg,
+        #f4f5f7 0%,
+        #74787d 13%,
+        #dfe2e6 27%,
+        #4b4f54 42%,
+        #eef0f2 57%,
+        #63676c 72%,
+        #cfd2d6 86%,
+        #808489 100%
+      );
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+  }
 }

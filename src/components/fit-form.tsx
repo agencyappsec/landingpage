@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import Cal from "@calcom/embed-react";
 
@@ -30,6 +30,14 @@ export function FitForm() {
   const [contact, setContact] = useState({ name: "", email: "", phone: "" });
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const advanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // A pending advance must not fire after the card has gone.
+  useEffect(() => {
+    return () => {
+      if (advanceTimer.current) clearTimeout(advanceTimer.current);
+    };
+  }, []);
 
   const question = fitQuestions[step];
   const onContactStep = step === fitQuestions.length;
@@ -51,9 +59,19 @@ export function FitForm() {
     return () => window.removeEventListener(PREFILL_EMAIL_EVENT, prefill);
   }, []);
 
+  /*
+    The answer registers immediately, but the step is held back a beat.
+    Advancing in the same tick swapped in the next question before the chosen
+    option could paint, so the selected state was never actually seen: the
+    click just looked like the form jumping forward.
+  */
   function choose(id: (typeof fitQuestions)[number]["id"], option: string) {
     setAnswers((prev) => ({ ...prev, [id]: option }));
-    setStep((s) => Math.min(s + 1, TOTAL_STEPS - 1));
+
+    if (advanceTimer.current) clearTimeout(advanceTimer.current);
+    advanceTimer.current = setTimeout(() => {
+      setStep((s) => Math.min(s + 1, TOTAL_STEPS - 1));
+    }, 260);
   }
 
   function handleSubmit(event: React.FormEvent) {
@@ -179,10 +197,16 @@ export function FitForm() {
                     type="button"
                     aria-pressed={active}
                     onClick={() => choose(question.id, option)}
-                    className={`flex min-h-11 flex-1 items-center rounded-xl border bg-black px-5 text-left text-sm transition sm:text-base ${
+                    /*
+                      The chosen option flips to a white fill. That is set
+                      through the metal edge's own fill variable rather than a
+                      bg- class: the fill is a background image, so a
+                      background-colour would be painted over and never seen.
+                    */
+                    className={`metal-edge flex min-h-11 flex-1 items-center rounded-xl px-5 text-left text-sm transition sm:text-base ${
                       active
-                        ? "border-white/70 font-medium text-white"
-                        : "border-line text-white/70 hover:border-white/30 hover:bg-white/[0.03] hover:text-white"
+                        ? "font-medium text-black [--metal-fill:#ffffff]"
+                        : "text-white/70 [--metal-fill:#000000] hover:text-white hover:[--metal-fill:#101013]"
                     }`}
                   >
                     {option}

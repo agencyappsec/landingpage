@@ -37,9 +37,15 @@ export function EmailCapture() {
 
   return (
     <form onSubmit={handleSubmit} className="mx-auto w-full max-w-md" noValidate>
+      {/*
+        The metal edge owns the border, so focus and the error state can no
+        longer be shown by colouring it. Focus brightens the fill instead, and
+        an error draws a ring outside the edge, which stays legible without
+        fighting the gradient.
+      */}
       <div
-        className={`flex w-full items-center gap-2 rounded-full border bg-white/[0.04] p-1.5 pl-5 backdrop-blur transition focus-within:border-white/25 ${
-          error ? "border-white/40" : "border-line"
+        className={`metal-edge flex w-full items-center gap-2 rounded-full p-1.5 pl-5 transition [--metal-fill:#0a0a0c] focus-within:[--metal-fill:#141418] ${
+          error ? "ring-1 ring-white/35" : ""
         }`}
       >
         <label htmlFor="work-email" className="sr-only">

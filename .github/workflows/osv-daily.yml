@@ -1,0 +1,96 @@
+name: osv-daily-scan
+
+# Trigger 2 of 2, and the one that matters most.
+#
+# Your dependencies do not have to change for your risk to change. A CVE
+# published today against a package installed eight months ago will never
+# trigger a pull request. Without this scheduled run you would never find out.
+#
+# workflow_dispatch lets you run it by hand from the Actions tab, so you can
+# test it without waiting until tomorrow.
+on:
+  schedule:
+    - cron: "0 6 * * *" # 06:00 UTC daily. GitHub cron is UTC and best-effort.
+  workflow_dispatch:
+
+# issues: write -> there is no PR on a scheduled run, so findings go to an issue
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  osv-daily:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Install osv-scanner
+        run: |
+          VERSION=v2.5.1
+          SHA256=f9f25499a2c8cc367b3af45df2ea7eeca7fbccceab9c35079968f4b3652194be
+          curl -sSL -o osv-scanner \
+            "https://github.com/google/osv-scanner/releases/download/${VERSION}/osv-scanner_linux_amd64"
+          echo "${SHA256}  osv-scanner" | sha256sum -c -
+          chmod +x osv-scanner
+          sudo mv osv-scanner /usr/local/bin/
+
+      - name: Scan dependencies
+        id: osv
+        run: |
+          set +e
+          osv-scanner --recursive ./ > osv-report.txt 2>&1
+          CODE=$?
+          set -e
+          cat osv-report.txt
+          if [ "$CODE" -eq 0 ]; then
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          elif [ "$CODE" -eq 1 ]; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::osv-scanner failed with exit code $CODE — treating as a failure."
+            exit 1
+          fi
+
+      # One issue, kept up to date. Edited when findings change, closed when
+      # they clear. Not a new issue every morning — that is how people learn
+      # to ignore the bot.
+      - name: Open, update or close the tracking issue
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: "Dependency vulnerabilities (OSV daily scan)"
+        run: |
+          NUM=$(gh issue list --state open --limit 100 --json number,title \
+            --jq ".[] | select(.title == \"$TITLE\") | .number" | head -1)
+
+          if [ "${{ steps.osv.outputs.found }}" = "true" ]; then
+            {
+              echo "The daily OSV scan found known vulnerabilities in this project's dependencies."
+              echo
+              echo "Note: these were **not** introduced by a code change. They are newly disclosed"
+              echo "against packages already in the lockfile."
+              echo
+              echo '```'
+              head -c 55000 osv-report.txt
+              echo '```'
+              echo
+              echo "_Updated automatically by the daily scan. Closes itself when the findings clear._"
+            } > body.md
+
+            if [ -n "$NUM" ]; then
+              gh issue edit "$NUM" --body-file body.md
+              echo "Updated issue #$NUM"
+            else
+              gh issue create --title "$TITLE" --body-file body.md
+              echo "Opened a new issue"
+            fi
+          else
+            if [ -n "$NUM" ]; then
+              gh issue comment "$NUM" --body "✅ Latest daily scan is clean. Closing."
+              gh issue close "$NUM"
+              echo "Closed issue #$NUM"
+            else
+              echo "Clean, and no open issue. Nothing to do."
+            fi
+          fi

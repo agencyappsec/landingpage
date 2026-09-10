@@ -1,0 +1,99 @@
+name: osv-dependency-scan
+
+# Trigger 1 of 2: catches a vulnerable dependency being INTRODUCED by a PR.
+# The other half is osv-daily.yml. You need both — see that file for why.
+on: pull_request
+
+# contents: read       -> check out the code
+# pull-requests: write -> post the results as a comment
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  osv-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      # Downloading a binary has the same supply-chain problem as an unpinned
+      # action, so we verify its checksum. If GitHub ever served us a different
+      # file, sha256sum -c fails and the job stops here.
+      - name: Install osv-scanner
+        run: |
+          VERSION=v2.5.1
+          SHA256=f9f25499a2c8cc367b3af45df2ea7eeca7fbccceab9c35079968f4b3652194be
+          curl -sSL -o osv-scanner \
+            "https://github.com/google/osv-scanner/releases/download/${VERSION}/osv-scanner_linux_amd64"
+          echo "${SHA256}  osv-scanner" | sha256sum -c -
+          chmod +x osv-scanner
+          sudo mv osv-scanner /usr/local/bin/
+
+      # Exit codes: 0 = clean, 1 = vulnerabilities found, anything else = the
+      # scanner itself broke. That last case FAILS THE JOB — same fail-closed
+      # rule as report.js. A scanner that crashed must never look like a pass.
+      - name: Scan dependencies
+        id: osv
+        run: |
+          set +e
+          osv-scanner --recursive ./ > osv-report.txt 2>&1
+          CODE=$?
+          set -e
+          cat osv-report.txt
+          if [ "$CODE" -eq 0 ]; then
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          elif [ "$CODE" -eq 1 ]; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::osv-scanner failed with exit code $CODE — treating as a failure."
+            exit 1
+          fi
+
+      # Upserts ONE comment, found by the hidden marker, so a PR with ten
+      # commits doesn't collect ten dependency comments.
+      - name: Comment on the PR
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          MARKER='<!-- osv-report -->'
+          {
+            echo "$MARKER"
+            echo "## 📦 Dependency scan (OSV)"
+            echo
+            if [ "${{ steps.osv.outputs.found }}" = "true" ]; then
+              echo "Known vulnerabilities found in dependencies:"
+              echo
+              echo '```'
+              head -c 55000 osv-report.txt
+              echo '```'
+            else
+              echo "✅ No known vulnerabilities in dependencies."
+            fi
+            echo
+            echo "<sub>Source: OSV database. Deterministic lookup, not an AI review.</sub>"
+          } > comment.md
+
+          EXISTING=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate \
+            --jq "map(select(.body | contains(\"$MARKER\"))) | .[0].id // empty" | head -1)
+
+          if [ -n "$EXISTING" ]; then
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$EXISTING" -F body=@comment.md
+          else
+            gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$PR/comments" -F body=@comment.md
+          fi
+
+      # GATE_ON_VULNS "false" = report only. Flip to "true" once the client
+      # trusts the signal and you have somewhere to record accepted CVEs.
+      - name: Decide pass/fail
+        if: always()
+        env:
+          GATE_ON_VULNS: "false"
+        run: |
+          if [ "$GATE_ON_VULNS" = "true" ] && [ "${{ steps.osv.outputs.found }}" = "true" ]; then
+            echo "::error::Vulnerable dependencies found and the gate is on."
+            exit 1
+          fi
+          echo "Gate is off (report-only)."

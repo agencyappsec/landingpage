@@ -12,6 +12,7 @@ on:
   schedule:
     - cron: "0 6 * * *" # 06:00 UTC daily. GitHub cron is UTC and best-effort.
   workflow_dispatch:
+  pull_request:
 
 # issues: write -> there is no PR on a scheduled run, so findings go to an issue
 permissions:

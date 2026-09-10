@@ -1,0 +1,5 @@
+{
+  "_comment": "Overrules the scanner's severity labels, which are sometimes miscalibrated. Effective severity is chosen as: byFingerprint > byCwe > CVSS score band. Start empty and add rules only for findings you have actually seen and disagreed with.",
+  "byCwe": {},
+  "byFingerprint": {}
+}

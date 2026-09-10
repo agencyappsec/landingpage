@@ -1,0 +1,10 @@
+{
+  "_comment": "Findings we have reviewed and deliberately accepted. report.js drops any finding whose fingerprint appears here, so it stops blocking merges and stops re-spamming the PR. Fingerprint format: <METHOD>:<endpoint>:<CWE>. For code scans METHOD is usually N/A and endpoint is the file path.",
+  "_example": {
+    "fingerprint": "N/A:.github/workflows/strix.yml:CWE-829",
+    "reason": "Accepted until Q1 — tracked in TICKET-123.",
+    "date": "2026-09-10",
+    "accepted_by": "jason"
+  },
+  "accepted": []
+}

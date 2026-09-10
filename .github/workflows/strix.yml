@@ -37,7 +37,7 @@ jobs:
         continue-on-error: true
         env:
           STRIX_LLM: ${{ secrets.STRIX_LLM }}
-          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY_TYPO }}
         run: |
           strix -n -t ./ \
             --scan-mode quick \

@@ -17,7 +17,7 @@ jobs:
       # movable tag like @v4. A tag can be repointed by its owner at any time;
       # a commit SHA cannot. The comment records which release it is.
       - name: Check out the code
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 

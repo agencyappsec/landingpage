@@ -3,9 +3,11 @@ name: strix-security-scan
 # Run this whenever someone opens or updates a pull request.
 on: pull_request
 
-# This job only needs to read the code.
+# contents: read       -> check out the code
+# pull-requests: write -> let report.js post a comment on the PR
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   security-scan:
@@ -13,8 +15,7 @@ jobs:
     steps:
       # Actions are pinned to a full 40-character commit SHA rather than a
       # movable tag like @v4. A tag can be repointed by its owner at any time;
-      # a commit SHA cannot. The comment after each SHA records which release
-      # it is, so a human can still read it. (CWE-829, found by the first scan.)
+      # a commit SHA cannot. The comment records which release it is.
       - name: Check out the code
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
@@ -30,7 +31,8 @@ jobs:
       - name: Install Strix
         run: pip install "strix-agent==1.5.3"
 
-      # continue-on-error: even if the scan finds problems, don't fail here.
+      # continue-on-error: the scan's exit code does NOT decide the check.
+      # report.js decides. See the last step.
       - name: Run the scan
         continue-on-error: true
         env:
@@ -50,3 +52,19 @@ jobs:
           name: strix-runs
           path: strix_runs/
           if-no-files-found: warn
+
+      # Read findings.sarif -> apply severity overrides -> drop accepted
+      # findings -> post ONE comment on the PR -> exit non-zero only if
+      # something at or above GATE_THRESHOLD survived.
+      #
+      # if: always()          -> report even when the scan crashed
+      # NO continue-on-error  -> THIS step's exit code is the check result
+      # GATE_THRESHOLD "off"  -> report everything, block nothing (start here)
+      - name: Report findings and decide pass/fail
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
+          GATE_THRESHOLD: "off"
+        run: node .strix/report.js

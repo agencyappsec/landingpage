@@ -1,6 +1,7 @@
 import { ProofVideo } from "@/components/ProofVideo";
 import { Reveal } from "@/components/reveal";
 import { offers, serviceVideoLeadIn } from "@/lib/service";
+import { HERO_MAX_WIDTH } from "@/lib/video-sizing";
 
 export function Service() {
   return (
@@ -47,7 +48,16 @@ export function Service() {
               style={{ "--reveal-delay": "110ms" } as React.CSSProperties}
             >
               {/* Falls back to the hero's cut until the long one has an ID. */}
-              <ProofVideo media="service" maxWidth="100%" className="mt-6" />
+              {/*
+                Sized off the hero player's width so it always reads as the
+                secondary video, including on short screens where the hero
+                shrinks to fit above the fold.
+              */}
+              <ProofVideo
+                media="service"
+                maxWidth={`calc(${HERO_MAX_WIDTH} * 0.88)`}
+                className="mt-6"
+              />
             </div>
           </div>
         </Reveal>

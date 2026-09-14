@@ -2,12 +2,10 @@ export const offers = [
   {
     name: "Gate",
     body: "The audit before you hand the project over. Every real way the app can be broken into, proven, with the fix.",
-    pricing: "Priced per project",
   },
   {
     name: "Monitor",
     body: "A one-time install that re-runs the testing on every pull request. No retainer.",
-    pricing: "Priced per install",
   },
 ] as const;
 

@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import Cal from "@calcom/embed-react";
+import Cal, { getCalApi } from "@calcom/embed-react";
 
+import { HoneypotField } from "@/components/email-capture";
+import { hasRecentBooking, rememberBooking } from "@/lib/booking";
 import {
   calLink,
   declineReason,
@@ -11,7 +13,8 @@ import {
   isQualified,
   type FitAnswers,
 } from "@/lib/fit";
-import { PREFILL_EMAIL_EVENT, submitLead } from "@/lib/lead";
+import { emailError, PREFILL_EMAIL_EVENT, submitLead } from "@/lib/lead";
+import { site } from "@/lib/site";
 
 /**
  * One card that advances a step at a time: four questions, then contact
@@ -30,6 +33,8 @@ export function FitForm() {
   const [contact, setContact] = useState({ name: "", email: "", phone: "" });
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [website, setWebsite] = useState("");
+  const [alreadyBooked, setAlreadyBooked] = useState(false);
   const advanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // A pending advance must not fire after the card has gone.
@@ -43,7 +48,7 @@ export function FitForm() {
   const onContactStep = step === fitQuestions.length;
   const qualified = isQualified(answers);
   const calConfigured = Boolean(calLink) && calLink !== "REPLACE_ME";
-  const showCalendar = qualified && calConfigured;
+  const showCalendar = qualified && calConfigured && !alreadyBooked;
 
   /*
     The hero bar fires this when someone books a demo from the top of the page.
@@ -58,6 +63,27 @@ export function FitForm() {
     window.addEventListener(PREFILL_EMAIL_EVENT, prefill);
     return () => window.removeEventListener(PREFILL_EMAIL_EVENT, prefill);
   }, []);
+
+  /*
+    Once Cal confirms a booking, remember it in this browser, so a reload or a
+    second pass through the form doesn't offer the calendar again. Nothing
+    changes on screen now — Cal's own confirmation is showing in the iframe.
+  */
+  useEffect(() => {
+    if (!submitted || !showCalendar) return;
+    const listener = {
+      action: "bookingSuccessfulV2" as const,
+      callback: () => rememberBooking(),
+    };
+    let active = true;
+    void getCalApi().then((cal) => {
+      if (active) cal("on", listener);
+    });
+    return () => {
+      active = false;
+      void getCalApi().then((cal) => cal("off", listener));
+    };
+  }, [submitted, showCalendar]);
 
   /*
     The answer registers immediately, but the step is held back a beat.
@@ -76,8 +102,13 @@ export function FitForm() {
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    if (!contact.name.trim() || !contact.email.trim()) {
-      setError("Name and work email are needed to book.");
+    if (!contact.name.trim()) {
+      setError("Your name is needed to book.");
+      return;
+    }
+    const problem = emailError(contact.email);
+    if (problem) {
+      setError(problem);
       return;
     }
     setError(null);
@@ -89,8 +120,12 @@ export function FitForm() {
       phone: contact.phone.trim() || undefined,
       answers,
       qualified,
+      website,
     });
 
+    // Read at submit rather than on mount: it only matters at this moment,
+    // and reading storage during render would mismatch the server HTML.
+    setAlreadyBooked(hasRecentBooking());
     setSubmitted(true);
   }
 
@@ -111,10 +146,27 @@ export function FitForm() {
       >
         <div className="step-in">
           <h3 className="font-brand text-xl font-semibold text-white">
-            {qualified ? "We’re a fit. Pick a time" : "Probably not a fit"}
+            {!qualified
+              ? "Probably not a fit"
+              : alreadyBooked
+                ? "You’re already booked"
+                : "We’re a fit. Pick a time"}
           </h3>
           {qualified ? (
-            calConfigured ? (
+            alreadyBooked ? (
+              <p className="mt-3 text-sm leading-relaxed text-white/55">
+                A call is already booked from this browser. The confirmation
+                email has links to reschedule or cancel it. Need a second call?
+                Email{" "}
+                <a
+                  href={`mailto:${site.email}`}
+                  className="underline underline-offset-4 transition hover:text-white"
+                >
+                  {site.email}
+                </a>
+                .
+              </p>
+            ) : calConfigured ? (
               /*
                 The answers ride along as booking metadata, so the call lands
                 in the calendar already knowing what they built and where they
@@ -163,7 +215,9 @@ export function FitForm() {
     <form
       onSubmit={handleSubmit}
       className="metal-edge mx-auto mt-14 flex w-full max-w-xl flex-col rounded-2xl p-6 sm:aspect-square sm:p-8"
+      noValidate
     >
+      <HoneypotField value={website} onChange={setWebsite} />
       {/* progress */}
       <div className="flex items-center gap-4">
         <div className="h-px flex-1 bg-white/10">
@@ -227,6 +281,7 @@ export function FitForm() {
                 value={contact.name}
                 onChange={(v) => setContact((c) => ({ ...c, name: v }))}
                 autoComplete="name"
+                maxLength={100}
               />
               <Field
                 id="fit-email"
@@ -235,6 +290,7 @@ export function FitForm() {
                 value={contact.email}
                 onChange={(v) => setContact((c) => ({ ...c, email: v }))}
                 autoComplete="email"
+                maxLength={254}
               />
               <Field
                 id="fit-phone"
@@ -244,6 +300,7 @@ export function FitForm() {
                 value={contact.phone}
                 onChange={(v) => setContact((c) => ({ ...c, phone: v }))}
                 autoComplete="tel"
+                maxLength={40}
               />
             </div>
           </>
@@ -293,6 +350,7 @@ function Field({
   onChange,
   type = "text",
   autoComplete,
+  maxLength,
 }: {
   id: string;
   label: string;
@@ -301,6 +359,7 @@ function Field({
   onChange: (value: string) => void;
   type?: string;
   autoComplete?: string;
+  maxLength?: number;
 }) {
   return (
     <label htmlFor={id} className="block">
@@ -313,6 +372,7 @@ function Field({
         type={type}
         value={value}
         autoComplete={autoComplete}
+        maxLength={maxLength}
         onChange={(e) => onChange(e.target.value)}
         className="mt-2 w-full rounded-xl border border-line bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition focus:border-white/25"
       />

@@ -21,11 +21,72 @@ export type Lead = {
   phone?: string;
   answers?: FitAnswers;
   qualified?: boolean;
+  /**
+   * Honeypot. Rendered off-screen and hidden from assistive tech, so a person
+   * never fills it in — anything here came from a bot.
+   */
+  website?: string;
 };
 
-/** Deliberately loose — real validation is the mail provider's job. */
-export function looksLikeEmail(value: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+/**
+ * Throwaway inboxes. Not exhaustive — new ones appear daily — but these cover
+ * the ones people actually reach for when they don't want to be contacted.
+ */
+const DISPOSABLE_DOMAINS = new Set([
+  "10minutemail.com",
+  "dispostable.com",
+  "fakeinbox.com",
+  "getnada.com",
+  "guerrillamail.com",
+  "maildrop.cc",
+  "mailinator.com",
+  "mailnesia.com",
+  "sharklasers.com",
+  "temp-mail.org",
+  "tempmail.com",
+  "throwawaymail.com",
+  "trashmail.com",
+  "yopmail.com",
+]);
+
+const LOCAL_PART = /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*$/;
+const DOMAIN_LABEL = /^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?$/;
+const TOP_LEVEL = /^[A-Za-z]{2,63}$/;
+
+/**
+ * Why an address won't do, or null if it's fine. Shared by the forms and the
+ * API route, so what the browser accepts is exactly what the server accepts.
+ *
+ * Checks shape only — one @, a sane local part, a real-looking domain with a
+ * letters-only TLD, RFC length limits — and turns away disposable inboxes.
+ * Whether the mailbox exists is for Cal.com's booker verification to prove.
+ */
+export function emailError(value: unknown): string | null {
+  if (typeof value !== "string") return "Enter your email address.";
+  const email = value.trim();
+  if (!email) return "Enter your email address.";
+
+  const invalid = "Enter a valid email address, like you@company.com.";
+  if (email.length > 254) return invalid;
+
+  const at = email.lastIndexOf("@");
+  if (at < 1 || email.indexOf("@") !== at) return invalid;
+
+  const local = email.slice(0, at);
+  const domain = email.slice(at + 1).toLowerCase();
+  if (local.length > 64 || !LOCAL_PART.test(local)) return invalid;
+
+  const labels = domain.split(".");
+  if (labels.length < 2) return invalid;
+  if (!labels.every((label) => label.length <= 63 && DOMAIN_LABEL.test(label))) {
+    return invalid;
+  }
+  if (!TOP_LEVEL.test(labels[labels.length - 1])) return invalid;
+
+  if (DISPOSABLE_DOMAINS.has(domain)) {
+    return "Please use a permanent email address, not a disposable one.";
+  }
+  return null;
 }
 
 /**

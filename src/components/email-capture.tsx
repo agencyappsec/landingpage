@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { dispatchPrefillEmail, looksLikeEmail, submitLead } from "@/lib/lead";
+import { dispatchPrefillEmail, emailError, submitLead } from "@/lib/lead";
 
 /**
  * The email bar under the video. Two jobs on submit:
@@ -14,19 +14,21 @@ import { dispatchPrefillEmail, looksLikeEmail, submitLead } from "@/lib/lead";
  */
 export function EmailCapture() {
   const [email, setEmail] = useState("");
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [website, setWebsite] = useState("");
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
 
     const trimmed = email.trim();
-    if (!looksLikeEmail(trimmed)) {
-      setError(true);
+    const problem = emailError(trimmed);
+    if (problem) {
+      setError(problem);
       return;
     }
-    setError(false);
+    setError(null);
 
-    submitLead({ source: "hero", email: trimmed });
+    submitLead({ source: "hero", email: trimmed, website });
     dispatchPrefillEmail(trimmed);
 
     document.getElementById("book")?.scrollIntoView({
@@ -48,6 +50,7 @@ export function EmailCapture() {
           error ? "ring-1 ring-white/35" : ""
         }`}
       >
+        <HoneypotField value={website} onChange={setWebsite} />
         <label htmlFor="work-email" className="sr-only">
           Your work email
         </label>
@@ -55,13 +58,14 @@ export function EmailCapture() {
           id="work-email"
           type="email"
           autoComplete="email"
+          maxLength={254}
           placeholder="Your work email here"
           value={email}
           onChange={(e) => {
             setEmail(e.target.value);
-            if (error) setError(false);
+            if (error) setError(null);
           }}
-          aria-invalid={error}
+          aria-invalid={Boolean(error)}
           aria-describedby={error ? "work-email-error" : undefined}
           className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/40"
         />
@@ -74,9 +78,34 @@ export function EmailCapture() {
       </div>
       {error && (
         <p id="work-email-error" className="mt-2 text-center text-xs text-white/50">
-          That doesn’t look like an email address.
+          {error}
         </p>
       )}
     </form>
+  );
+}
+
+/**
+ * Bot trap. Off-screen, out of the tab order and hidden from screen readers,
+ * so only a script filling every input it finds will put anything in it.
+ */
+export function HoneypotField({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <input
+      type="text"
+      name="website"
+      tabIndex={-1}
+      autoComplete="off"
+      aria-hidden="true"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="pointer-events-none absolute -left-[9999px] h-px w-px opacity-0"
+    />
   );
 }

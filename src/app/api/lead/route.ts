@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 
 import { fitQuestions } from "@/lib/fit";
-import { looksLikeEmail, type Lead } from "@/lib/lead";
+import { emailError, type Lead } from "@/lib/lead";
 
 /**
  * Receives a lead from the hero bar or the fit form and emails it on.
@@ -18,6 +18,41 @@ function config() {
   };
 }
 
+/**
+ * Abuse limits, kept in memory. On serverless each instance has its own copy,
+ * so these are best-effort: they stop a script hammering one warm instance and
+ * collapse double submits, which is most of what actually happens. A shared
+ * store (Upstash, Vercel KV) would make them exact if that ever matters.
+ */
+const WINDOW_MS = 10 * 60 * 1000;
+const MAX_PER_IP = 5;
+const requestsByIp = new Map<string, number[]>();
+const lastSentByLead = new Map<string, number>();
+
+function clientIp(request: Request): string {
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown"
+  );
+}
+
+function isRateLimited(ip: string, now: number): boolean {
+  const recent = (requestsByIp.get(ip) ?? []).filter((t) => now - t < WINDOW_MS);
+  recent.push(now);
+  requestsByIp.set(ip, recent);
+
+  // Keep the maps from growing without bound on a long-lived instance.
+  if (requestsByIp.size > 5000) requestsByIp.clear();
+  if (lastSentByLead.size > 5000) lastSentByLead.clear();
+
+  return recent.length > MAX_PER_IP;
+}
+
+function isTooLong(value: unknown, max: number): boolean {
+  return value !== undefined && (typeof value !== "string" || value.length > max);
+}
+
 export async function POST(request: Request) {
   let lead: Lead;
   try {
@@ -26,8 +61,39 @@ export async function POST(request: Request) {
     return Response.json({ error: "Malformed body" }, { status: 400 });
   }
 
-  if (!lead?.email || !looksLikeEmail(lead.email)) {
+  if (!lead || typeof lead !== "object") {
+    return Response.json({ error: "Malformed body" }, { status: 400 });
+  }
+
+  // A filled honeypot is a bot. Answer like a success so it has no signal to
+  // adapt to, and send nothing.
+  if (lead.website) {
+    return Response.json({ ok: true, delivered: true });
+  }
+
+  if (lead.source !== "hero" && lead.source !== "fit-form") {
+    return Response.json({ error: "Unknown source" }, { status: 400 });
+  }
+
+  if (emailError(lead.email)) {
     return Response.json({ error: "A valid email is required" }, { status: 400 });
+  }
+  lead.email = lead.email.trim();
+
+  if (isTooLong(lead.name, 100) || isTooLong(lead.phone, 40)) {
+    return Response.json({ error: "Field too long" }, { status: 400 });
+  }
+
+  const now = Date.now();
+  if (isRateLimited(clientIp(request), now)) {
+    return Response.json({ error: "Too many requests" }, { status: 429 });
+  }
+
+  // The same person resubmitting the same form is one lead, not several.
+  const leadKey = `${lead.source}:${lead.email.toLowerCase()}`;
+  const lastSent = lastSentByLead.get(leadKey);
+  if (lastSent && now - lastSent < WINDOW_MS) {
+    return Response.json({ ok: true, delivered: false, duplicate: true });
   }
 
   const { apiKey, to, from } = config();
@@ -70,6 +136,7 @@ export async function POST(request: Request) {
     return Response.json({ ok: false, delivered: false }, { status: 502 });
   }
 
+  lastSentByLead.set(leadKey, now);
   return Response.json({ ok: true, delivered: true });
 }
 

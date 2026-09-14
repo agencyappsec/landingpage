@@ -8,12 +8,12 @@ export function Service() {
       <div className="mx-auto max-w-6xl">
         <Reveal>
           <h2 className="reveal-item font-brand text-center text-[clamp(1.9rem,4vw,3.25rem)] leading-[1.1] font-semibold tracking-[-0.03em] text-white">
-            Three ways I work with agencies.
+            Two ways I work with agencies.
           </h2>
         </Reveal>
 
         <div className="mt-14 grid gap-8 lg:grid-cols-2 lg:gap-12">
-          {/* Left: the three offers, stacked. */}
+          {/* Left: the two offers, stacked. */}
           <Reveal>
             <ul className="grid gap-4">
               {offers.map((offer, i) => (
@@ -38,22 +38,25 @@ export function Service() {
 
           {/* Right: the walkthrough. */}
           {/*
-            The player alone is centred on the row, so its midpoint lines up
-            with the middle card's. The lead-in is taken out of flow above it
-            (lg only) — left in flow it would push the player down by half its
-            own height and break that alignment.
+            Lead-in and player are one block, centred against the card stack, so
+            the two columns balance on the same midline whatever the cards do.
+
+            The lead-in used to be lifted out of flow above the player so the
+            player alone could hold that midline. That was tuned for three
+            cards; at two, the shorter row left the floated text stranded above
+            the column. In flow it just moves down with everything else.
           */}
           <Reveal className="lg:flex lg:h-full lg:items-center">
-            <div className="relative w-full">
-              <p className="reveal-item text-base leading-relaxed text-white/55 sm:text-lg lg:absolute lg:bottom-full lg:left-0 lg:mb-5 lg:w-full">
+            <div className="w-full">
+              <p className="reveal-item text-base leading-relaxed text-white/55 sm:text-lg">
                 {serviceVideoLeadIn}
               </p>
               <div
                 className="reveal-item"
                 style={{ "--reveal-delay": "110ms" } as React.CSSProperties}
               >
-                {/* Placeholder: same media as the hero until the long cut is recorded. */}
-                <ProofVideo maxWidth="100%" className="mt-5 lg:mt-0" />
+                {/* Falls back to the hero's cut until the long one has an ID. */}
+                <ProofVideo media="service" maxWidth="100%" className="mt-5" />
               </div>
             </div>
           </Reveal>

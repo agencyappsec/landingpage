@@ -19,13 +19,50 @@ import { WistiaPlayer } from "@wistia/wistia-player-react";
  */
 
 // Inlined at build time, so the server and client agree — no hydration mismatch.
-const MEDIA_ID = process.env.NEXT_PUBLIC_WISTIA_MEDIA_ID;
-const isConfigured = Boolean(MEDIA_ID) && MEDIA_ID !== "REPLACE_ME";
+// Both have to be spelled out in full: Next substitutes the literal text
+// `process.env.NEXT_PUBLIC_...`, so a computed key would never be replaced.
+const HERO_MEDIA_ID = process.env.NEXT_PUBLIC_WISTIA_MEDIA_ID;
+const SERVICE_MEDIA_ID = process.env.NEXT_PUBLIC_WISTIA_SERVICE_MEDIA_ID;
 
-/** Fills whatever height the hero has left once everything else has its share. */
-const HERO_MAX_WIDTH = "min(56rem, calc((100svh - 29rem) * 16 / 9))";
+/** Unset, or still carrying the placeholder .env.example ships with. */
+const isSet = (id?: string) => Boolean(id) && id !== "REPLACE_ME";
+
+/** Which cut to play: the short hero one, or the long service-section one. */
+export type ProofVideoMedia = "hero" | "service";
+
+/** The service cut falls back to the hero's until its own ID is set. */
+function resolveMediaId(media: ProofVideoMedia) {
+  if (media === "service" && isSet(SERVICE_MEDIA_ID)) return SERVICE_MEDIA_ID;
+  return isSet(HERO_MEDIA_ID) ? HERO_MEDIA_ID : undefined;
+}
+
+/**
+ * The source dimensions of both cuts. This is NOT 16:9 — do not "tidy" it into
+ * `aspect-video`. <wistia-player> derives its own height from the container
+ * width using the media's real ratio, so a 16:9 reservation leaves the player
+ * ~16% taller than the box it sits in, and `overflow-hidden` then shears the
+ * bottom off — taking the control bar (fullscreen, captions, volume) with it.
+ * The symptom is controls that seem "turned off" while Wistia's Customize
+ * panel insists they're on. If the videos are ever re-cut at another size,
+ * this has to follow them.
+ */
+const VIDEO_ASPECT = "1660 / 1080";
+
+/**
+ * Fills whatever height the hero has left once everything else has its share,
+ * then backs off by a tenth so the player doesn't crowd the headline above it
+ * or the email capture below. Both terms carry the same reduction: on most
+ * viewports the height-derived one is the smaller of the two and wins, so
+ * trimming only the rem cap would change nothing on screens that matter.
+ *
+ * The ratio here converts leftover height into width, so it has to be the same
+ * one the player actually uses — see VIDEO_ASPECT above.
+ */
+const HERO_MAX_WIDTH = "min(50rem, calc((100svh - 29rem) * 1660 / 1080 * 0.9))";
 
 type ProofVideoProps = {
+  /** Which cut to play. Defaults to the hero's. */
+  media?: ProofVideoMedia;
   /** CSS max-width for the player. Defaults to the hero's height-derived fit. */
   maxWidth?: string;
   /** Spacing for the outer wrapper. */
@@ -33,9 +70,11 @@ type ProofVideoProps = {
 };
 
 export function ProofVideo({
+  media = "hero",
   maxWidth = HERO_MAX_WIDTH,
   className = "mt-6",
 }: ProofVideoProps = {}) {
+  const mediaId = resolveMediaId(media);
   return (
     <div className={`w-full ${className}`}>
       <div className="mx-auto w-full" style={{ maxWidth }}>
@@ -45,8 +84,11 @@ export function ProofVideo({
           player derives its own height from the container width; never set an
           explicit height on it.
         */}
-        <div className="metal-edge aspect-video w-full overflow-hidden rounded-xl">
-          {isConfigured ? <WistiaPlayer mediaId={MEDIA_ID as string} /> : null}
+        <div
+          className="metal-edge w-full overflow-hidden rounded-xl"
+          style={{ aspectRatio: VIDEO_ASPECT }}
+        >
+          {mediaId ? <WistiaPlayer mediaId={mediaId} /> : null}
         </div>
       </div>
     </div>

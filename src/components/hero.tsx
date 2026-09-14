@@ -3,6 +3,7 @@ import { EmailCapture } from "@/components/email-capture";
 import { LogoCycle } from "@/components/logo-cycle";
 import { SiteNav } from "@/components/site-nav";
 import { StackStrip } from "@/components/stack-strip";
+import { Testimonials } from "@/components/testimonials";
 
 export function Hero() {
   return (
@@ -44,6 +45,7 @@ export function Hero() {
         </div>
       </div>
 
+      <Testimonials />
       <StackStrip />
     </section>
   );

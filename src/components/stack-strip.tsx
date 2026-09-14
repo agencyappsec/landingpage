@@ -4,7 +4,7 @@ export function StackStrip() {
   return (
     <div className="relative z-10 mt-8 w-full px-6 pb-8">
       <p className="text-center text-[11px] font-medium tracking-[0.22em] text-white/35 uppercase">
-        The stack we specialize in
+        The stack I specialize in
       </p>
       <ul className="mt-6 flex flex-wrap items-center justify-center gap-x-10 gap-y-6 sm:gap-x-14">
         {stackLogos.map((logo) => (

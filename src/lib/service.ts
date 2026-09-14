@@ -9,11 +9,6 @@ export const offers = [
     body: "A one-time install that re-runs the testing on every pull request. No retainer.",
     pricing: "Priced per install",
   },
-  {
-    name: "Resell",
-    body: "My monitoring under your brand, at wholesale, so security becomes a line item you bill for.",
-    pricing: "Wholesale per client roster",
-  },
 ] as const;
 
 export const serviceVideoLeadIn =

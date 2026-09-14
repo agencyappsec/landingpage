@@ -42,23 +42,35 @@ body {
 
 /* ---------- Hero backdrop: a schema grid under an audit scan ---------- */
 
-/* Fine grid = the structured data underneath the app. */
+/*
+ * Fine grid = the structured data underneath the app.
+ *
+ * Two dials set how present it feels, and they do different jobs: the line
+ * alpha sets how bright a line is where the mask lets it through, and the mask
+ * sets how much of the hero it reaches before dissolving. Raising alpha alone
+ * makes a small bright patch behind the headline; widening the mask alone
+ * spreads lines too faint to register. These move together.
+ */
 .grid-field {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.09) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.09) 1px, transparent 1px);
+    linear-gradient(to right, rgba(255, 255, 255, 0.13) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.13) 1px, transparent 1px);
   background-size: 40px 40px;
+  /*
+    Held at full strength further out (26% vs 18%) and dissolving later (88% vs
+    76%), so the grid carries most of the hero instead of a patch at its centre.
+  */
   -webkit-mask-image: radial-gradient(
-    ellipse 85% 62% at 50% 34%,
-    #000 18%,
-    transparent 76%
+    ellipse 92% 70% at 50% 34%,
+    #000 26%,
+    transparent 88%
   );
   mask-image: radial-gradient(
-    ellipse 85% 62% at 50% 34%,
-    #000 18%,
-    transparent 76%
+    ellipse 92% 70% at 50% 34%,
+    #000 26%,
+    transparent 88%
   );
 }
 
@@ -84,6 +96,55 @@ body {
 }
 
 /* ---------- Headline logo cycle ---------- */
+/*
+ * The opening: the headline arrives closed, reading "Ship fast, stay covered.",
+ * then the comma shrinks out while the square between the halves widens from
+ * nothing and pushes them apart. The h1 is centred, so the line grows from its
+ * middle and both halves travel outward evenly.
+ *
+ * Only the `from` is written. An omitted `to` interpolates to the element's own
+ * computed values, which is what keeps the responsive margin (mx-3, sm:mx-4)
+ * and the em-based width authoritative in Tailwind rather than duplicated here
+ * at two breakpoints. `backwards` holds the closed state during the delay.
+ *
+ * The closed margin is asymmetric on purpose: nothing on the left so the comma
+ * sits tight against "fast", and a word space on the right so the sentence
+ * reads correctly before it ever moves.
+ */
+@keyframes logoSlotOpen {
+  from {
+    width: 0;
+    margin-inline: 0 0.28em;
+  }
+}
+
+.logo-slot {
+  animation: logoSlotOpen var(--open-seconds, 0.6s)
+    cubic-bezier(0.16, 1, 0.3, 1) var(--open-delay, 1.05s) backwards;
+}
+
+@keyframes commaClose {
+  to {
+    font-size: 0;
+    opacity: 0;
+  }
+}
+
+.logo-slot-comma {
+  display: inline-block;
+  animation: commaClose 0.35s ease-in var(--comma-delay, 1.05s) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Straight to the open state: no split, no comma left stranded beside it. */
+  .logo-slot {
+    animation: none;
+  }
+  .logo-slot-comma {
+    display: none;
+  }
+}
+
 .logo-cycle-item {
   opacity: 0;
   animation: logoCycle var(--cycle, 12s) linear infinite;
@@ -196,6 +257,65 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .slide-in {
     animation: none;
+  }
+}
+
+/* ---------- Testimonial marquee ---------- */
+/*
+ * The track holds the list twice, so -50% lands the second copy exactly where
+ * the first started and the loop never shows a seam. Duration is set here
+ * rather than per-card: it is the time for one full lap, so adding testimonials
+ * makes the strip travel faster unless this grows with it.
+ */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee {
+  overflow: hidden;
+  /* Fades the ends instead of cutting them, so cards leave rather than stop. */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 7%,
+    #000 93%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 7%,
+    #000 93%,
+    transparent 100%
+  );
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 70s linear infinite;
+}
+
+/* Long enough to read a card that's on its way out. */
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
+  /*
+   * With nothing moving, the overflowing cards would be unreachable, so the
+   * strip becomes a normal horizontal scroller instead.
+   */
+  .marquee {
+    overflow-x: auto;
   }
 }
 

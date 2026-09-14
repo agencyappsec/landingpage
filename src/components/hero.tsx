@@ -20,7 +20,12 @@ export function Hero() {
       <SiteNav />
 
       <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col items-center px-6 pt-10 text-center sm:pt-12">
-        <h1 className="rise whitespace-nowrap font-brand text-[clamp(1.15rem,4.9vw,4.5rem)] leading-[1.08] tracking-[-0.03em]">
+        {/*
+          Phones get a steeper vw so the one-line slogan uses the width it has
+          (it still fits at 320px). Capped at 2rem so it meets the sm size at the
+          breakpoint instead of shrinking as the screen gets wider.
+        */}
+        <h1 className="rise whitespace-nowrap font-brand text-[clamp(1.15rem,7vw,2rem)] leading-[1.08] tracking-[-0.03em] sm:text-[clamp(1.15rem,4.9vw,4.5rem)]">
           <span className="font-normal text-white/55">Ship fast</span>
           <LogoCycle />
           <span className="font-semibold text-white">stay covered.</span>

@@ -2,7 +2,7 @@
 
 import { WistiaPlayer } from "@wistia/wistia-player-react";
 
-import { HERO_MAX_WIDTH } from "@/lib/video-sizing";
+import { HERO_MAX_WIDTH, VIDEO_ASPECT } from "@/lib/video-sizing";
 
 /**
  * PLAYBACK SETTINGS LIVE IN WISTIA, NOT HERE.
@@ -37,18 +37,6 @@ function resolveMediaId(media: ProofVideoMedia) {
   if (media === "service" && isSet(SERVICE_MEDIA_ID)) return SERVICE_MEDIA_ID;
   return isSet(HERO_MEDIA_ID) ? HERO_MEDIA_ID : undefined;
 }
-
-/**
- * The source dimensions of both cuts. This is NOT 16:9 — do not "tidy" it into
- * `aspect-video`. <wistia-player> derives its own height from the container
- * width using the media's real ratio, so a 16:9 reservation leaves the player
- * ~16% taller than the box it sits in, and `overflow-hidden` then shears the
- * bottom off — taking the control bar (fullscreen, captions, volume) with it.
- * The symptom is controls that seem "turned off" while Wistia's Customize
- * panel insists they're on. If the videos are ever re-cut at another size,
- * this has to follow them.
- */
-const VIDEO_ASPECT = "1660 / 1080";
 
 type ProofVideoProps = {
   /** Which cut to play. Defaults to the hero's. */

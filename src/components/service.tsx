@@ -39,7 +39,7 @@ export function Service() {
 
         {/* The lead-in and player are one block so the text never leaves the video. */}
         <Reveal>
-          <div className="mx-auto mt-16 max-w-4xl sm:mt-20">
+          <div className="mx-auto mt-12 max-w-4xl sm:mt-14">
             <p className="reveal-item mx-auto max-w-3xl text-center text-base leading-relaxed text-white/55 sm:text-lg">
               {serviceVideoLeadIn}
             </p>
@@ -49,13 +49,13 @@ export function Service() {
             >
               {/* Falls back to the hero's cut until the long one has an ID. */}
               {/*
-                Sized off the hero player's width so it always reads as the
-                secondary video, including on short screens where the hero
-                shrinks to fit above the fold.
+                The hero player's height-derived fit. On desktop the hero itself
+                now spans its description line, so this keeps the size the hero
+                had before that.
               */}
               <ProofVideo
                 media="service"
-                maxWidth={`calc(${HERO_MAX_WIDTH} * 0.88)`}
+                maxWidth={HERO_MAX_WIDTH}
                 className="mt-6"
               />
             </div>

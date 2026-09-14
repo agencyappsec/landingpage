@@ -3,6 +3,7 @@ import { EmailCapture } from "@/components/email-capture";
 import { LogoCycle } from "@/components/logo-cycle";
 import { SiteNav } from "@/components/site-nav";
 import { StackStrip } from "@/components/stack-strip";
+import { HERO_MAX_WIDTH } from "@/lib/video-sizing";
 
 export function Hero() {
   return (
@@ -19,7 +20,7 @@ export function Hero() {
 
       <SiteNav />
 
-      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col items-center px-6 pt-10 text-center sm:pt-12">
+      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col items-center px-6 pt-6 text-center sm:pt-7">
         {/*
           Phones get a steeper vw so the one-line slogan uses the width it has
           (it still fits at 320px). Capped at 2rem so it meets the sm size at the
@@ -31,16 +32,33 @@ export function Hero() {
           <span className="font-semibold text-white">stay covered.</span>
         </h1>
 
-        <p
-          className="rise mt-5 max-w-2xl text-balance text-base leading-relaxed text-white/55 sm:text-lg lg:max-w-none lg:whitespace-nowrap"
-          style={{ animationDelay: "80ms" }}
-        >
-          Security that runs inside your agency&apos;s pipeline, on every project
-          you build for clients.
-        </p>
+        {/*
+          On desktop the player is exactly as wide as the one-line description
+          above it. The wrapper is sized by the text alone (w-max); the player's
+          box is width 0 with min-width 100%, so it fills that width without
+          adding to it. Below lg the description wraps, so the player keeps its
+          height-derived fit instead.
+        */}
+        <div className="flex w-full flex-col items-center lg:w-max">
+          <p
+            className="rise mt-5 max-w-2xl text-balance text-base leading-relaxed text-white/55 sm:text-lg lg:max-w-none lg:whitespace-nowrap"
+            style={{ animationDelay: "80ms" }}
+          >
+            Security that runs inside your agency&apos;s pipeline, on every project
+            you build for clients.
+          </p>
 
-        <div className="rise w-full" style={{ animationDelay: "160ms" }}>
-          <ProofVideo />
+          <div
+            className="rise mx-auto w-full max-w-(--hero-video-max) lg:w-0 lg:min-w-full lg:max-w-none"
+            style={
+              {
+                animationDelay: "160ms",
+                "--hero-video-max": HERO_MAX_WIDTH,
+              } as React.CSSProperties
+            }
+          >
+            <ProofVideo maxWidth="100%" />
+          </div>
         </div>
 
         <div

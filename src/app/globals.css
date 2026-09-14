@@ -55,8 +55,8 @@ body {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.13) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.13) 1px, transparent 1px);
+    linear-gradient(to right, rgba(255, 255, 255, 0.09) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.09) 1px, transparent 1px);
   background-size: 40px 40px;
   /*
     Held at full strength further out (26% vs 18%) and dissolving later (88% vs

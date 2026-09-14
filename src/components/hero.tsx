@@ -3,13 +3,14 @@ import { EmailCapture } from "@/components/email-capture";
 import { LogoCycle } from "@/components/logo-cycle";
 import { SiteNav } from "@/components/site-nav";
 import { StackStrip } from "@/components/stack-strip";
-import { Testimonials } from "@/components/testimonials";
 
 export function Hero() {
   return (
     <section
       id="top"
-      className="relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-background"
+      // Full-screen only from sm up. On a phone the content is shorter than the
+      // screen, and stretching to fit left a dead gap above the stack strip.
+      className="relative isolate flex flex-col overflow-hidden bg-background sm:min-h-[100svh]"
     >
       {/* backdrop */}
       <div className="pointer-events-none absolute inset-0 -z-10">
@@ -45,7 +46,11 @@ export function Hero() {
         </div>
       </div>
 
-      <Testimonials />
+      {/*
+        TODO: Testimonials are hidden until we have real reviews. The component
+        and its copy (src/lib/testimonials.ts) are kept; restore the import and
+        render <Testimonials /> here when real reviews come in.
+      */}
       <StackStrip />
     </section>
   );

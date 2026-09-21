@@ -20,7 +20,13 @@ export function Hero() {
 
       <SiteNav />
 
-      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col items-center px-6 pt-6 text-center sm:pt-7">
+      {/*
+        justify-center matters once the hero is taller than its content: flex-1
+        makes this box absorb the leftover height either way, and without it
+        every pixel of that slack collected below the email capture as one dead
+        band above the stack strip. Centred, it splits above and below instead.
+      */}
+      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col items-center justify-center px-6 pt-6 text-center sm:pt-7">
         {/*
           Phones get a steeper vw so the one-line slogan uses the width it has
           (it still fits at 320px). Capped at 2rem so it meets the sm size at the
@@ -33,13 +39,14 @@ export function Hero() {
         </h1>
 
         {/*
-          On desktop the player is exactly as wide as the one-line description
-          above it. The wrapper is sized by the text alone (w-max); the player's
-          box is width 0 with min-width 100%, so it fills that width without
-          adding to it. Below lg the description wraps, so the player keeps its
-          height-derived fit instead.
+          The player used to be sized to match the one-line description above it
+          (a w-max wrapper, the player at width 0 with min-width 100%). That was
+          tuned against a longer sentence; the description is now short enough
+          that matching it starved the player — 532px where its height-derived
+          fit allows 800px — and the 150px of height that bought went straight
+          into the gap above the stack strip. It takes its own fit again.
         */}
-        <div className="flex w-full flex-col items-center lg:w-max">
+        <div className="flex w-full flex-col items-center">
           <p
             className="rise mt-5 max-w-2xl text-balance text-base leading-relaxed text-white/55 sm:text-lg lg:max-w-none lg:whitespace-nowrap"
             style={{ animationDelay: "80ms" }}
@@ -49,7 +56,7 @@ export function Hero() {
           </p>
 
           <div
-            className="rise mx-auto w-full max-w-(--hero-video-max) lg:w-0 lg:min-w-full lg:max-w-none"
+            className="rise mx-auto w-full max-w-(--hero-video-max)"
             style={
               {
                 animationDelay: "160ms",

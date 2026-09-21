@@ -3,7 +3,6 @@ import { EmailCapture } from "@/components/email-capture";
 import { LogoCycle } from "@/components/logo-cycle";
 import { SiteNav } from "@/components/site-nav";
 import { StackStrip } from "@/components/stack-strip";
-import { Testimonials } from "@/components/testimonials";
 
 export function Hero() {
   return (
@@ -29,8 +28,7 @@ export function Hero() {
           className="rise mt-5 max-w-2xl text-balance text-base leading-relaxed text-white/55 sm:text-lg lg:max-w-none lg:whitespace-nowrap"
           style={{ animationDelay: "80ms" }}
         >
-          Security that runs inside your agency&apos;s pipeline, on every project
-          you build for clients.
+          Security that runs inside your pipeline, on every project you build.
         </p>
 
         <div className="rise w-full" style={{ animationDelay: "160ms" }}>
@@ -45,7 +43,6 @@ export function Hero() {
         </div>
       </div>
 
-      <Testimonials />
       <StackStrip />
     </section>
   );

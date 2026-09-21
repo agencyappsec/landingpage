@@ -260,65 +260,6 @@ body {
   }
 }
 
-/* ---------- Testimonial marquee ---------- */
-/*
- * The track holds the list twice, so -50% lands the second copy exactly where
- * the first started and the loop never shows a seam. Duration is set here
- * rather than per-card: it is the time for one full lap, so adding testimonials
- * makes the strip travel faster unless this grows with it.
- */
-@keyframes marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-.marquee {
-  overflow: hidden;
-  /* Fades the ends instead of cutting them, so cards leave rather than stop. */
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent 0,
-    #000 7%,
-    #000 93%,
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    to right,
-    transparent 0,
-    #000 7%,
-    #000 93%,
-    transparent 100%
-  );
-}
-
-.marquee-track {
-  display: flex;
-  width: max-content;
-  animation: marquee 70s linear infinite;
-}
-
-/* Long enough to read a card that's on its way out. */
-.marquee:hover .marquee-track {
-  animation-play-state: paused;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .marquee-track {
-    animation: none;
-  }
-  /*
-   * With nothing moving, the overflowing cards would be unreachable, so the
-   * strip becomes a normal horizontal scroller instead.
-   */
-  .marquee {
-    overflow-x: auto;
-  }
-}
-
 /* ---------- Metallic edge ---------- */
 /*
  * A gradient border, which CSS has no single property for. Two backgrounds are

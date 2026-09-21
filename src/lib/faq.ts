@@ -10,22 +10,17 @@ export const faqs = [
   {
     question: "Do you fix the issues, or just tell me about them?",
     answer:
-      "You get a specific fix for every finding, not “this is broken.” A code snippet or a configuration change your team or your AI tool can apply directly. Once you’ve applied them, I re-check at no cost to confirm each one actually resolved the issue.",
+      "You get a specific fix for every finding, not “this is broken.” A code snippet or a configuration change your team or your AI tool can apply directly. Once you’ve applied them, I re-check to confirm each one actually resolved the issue.",
   },
   {
     question: "What if nothing turns up?",
     answer:
-      "That’s exactly what the report says: what was checked and what came back clean. I’d rather tell you it’s solid than manufacture findings to justify the fee. The report also includes the findings I reviewed and dismissed, so you can see a person went through it rather than taking my word for the result.",
+      "That’s exactly what the report says: what was checked and what came back clean. I’d rather tell you it’s solid than manufacture findings to look busy. The report also includes the findings I reviewed and dismissed, so you can see a person went through it rather than taking my word for the result.",
   },
   {
     question: "Do I have to sign up for monitoring to get audited?",
     answer:
-      "No. The audit stands on its own. The continuous layer is there if you want it once you’re shipping regularly, and it’s a one-time install with no retainer. There’s no requirement to take it, and I won’t chase you for it.",
-  },
-  {
-    question: "How much does it cost?",
-    answer:
-      "Priced per project by complexity for the audit, a one-time fee for the monitoring install, and a wholesale rate per client roster if you resell it. Never per seat, never per hour. I’ll give you real numbers on the call once I know the shape of the app.",
+      "No. The audit stands on its own. The continuous layer is there if you want it once you’re shipping regularly, and it’s a one-time install with nothing ongoing. There’s no requirement to take it, and I won’t chase you for it.",
   },
   {
     question: "Do you only work with Supabase?",

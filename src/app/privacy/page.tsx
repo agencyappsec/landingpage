@@ -28,15 +28,16 @@ export default function Privacy() {
 
           <P className="mt-10">
             This policy explains what happens to your information when you use
-            this website. It covers the website only. If you go on to engage me
-            for a security audit, how I handle your systems and any data I
-            encounter during that work is governed separately by our written
-            scope and authorization agreement, and by any NDA we sign.
+            this website. It covers the website only. This is a personal
+            student project, not a business, and nothing here is sold. If I go
+            on to review your application, how I handle your systems and any
+            data I encounter during that work is governed separately by our
+            written scope and authorization agreement.
           </P>
 
           <H2>Who is responsible for your data</H2>
           <P>
-            {legal.businessName}, {legal.address}, Ireland.
+            {legal.businessName}, Ireland.
           </P>
           <P>
             I am the data controller for the information described below. You
@@ -48,7 +49,7 @@ export default function Privacy() {
           <H3>The fit form</H3>
           <P>
             If you fill in the form on this site, I collect what you enter: your
-            name, your work email address, what kind of organisation you are,
+            name, your email address, what kind of organisation you are,
             what you built your application with, what backend you’re using, and
             where you are in your build.
           </P>
@@ -58,7 +59,7 @@ export default function Privacy() {
             tell you so and send you the written teardown if you want it.
           </P>
           <Basis>
-            legitimate interests, responding to a business enquiry you
+            legitimate interests, responding to an enquiry you
             initiated. Where I send you the teardown or any follow-up material,
             that’s on the basis of your request.
           </Basis>
@@ -97,7 +98,7 @@ export default function Privacy() {
 
           <H3>Server logs</H3>
           <P>
-            This site is hosted on Vercel. Like any web host, it records standard
+            This site is hosted on Netlify. Like any web host, it records standard
             technical information when a page is requested: IP address, browser
             type, the page requested and the time. This happens automatically and
             is used for security and keeping the site running.
@@ -167,9 +168,7 @@ export default function Privacy() {
           <List>
             <li>
               Form submissions and email correspondence: up to 24 months from our
-              last contact, then deleted. If you become a client, records
-              connected to that engagement are kept as long as I’m required to
-              for legal and accounting purposes.
+              last contact, then deleted.
             </li>
             <li>
               Booking records: held by Cal.com under their retention policy, and
@@ -179,7 +178,7 @@ export default function Privacy() {
               Video analytics: held by Wistia under their retention policy. I
               only ever see aggregate figures.
             </li>
-            <li>Server logs: short-term, under Vercel’s standard retention.</li>
+            <li>Server logs: short-term, under Netlify’s standard retention.</li>
           </List>
           <P>You can ask me to delete your information sooner. See below.</P>
 
@@ -224,7 +223,7 @@ export default function Privacy() {
 
           <H2>Children</H2>
           <P>
-            This site is aimed at businesses. I don’t knowingly collect
+            This site isn’t aimed at children, and I don’t knowingly collect
             information from anyone under 18.
           </P>
 
@@ -239,7 +238,7 @@ export default function Privacy() {
           <P>
             {legal.businessName}
             <br />
-            {legal.address}, Ireland
+            Ireland
             <br />
             <Mail />
           </P>

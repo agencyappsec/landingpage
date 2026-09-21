@@ -61,10 +61,6 @@ export function SiteFooter() {
           Every engagement begins with written authorization. No system is ever
           tested without it.
         </p>
-
-        <p className="font-mono text-xs tracking-[0.06em] text-white/25">
-          © 2026 {site.name}
-        </p>
       </div>
     </footer>
   );

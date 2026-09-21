@@ -59,7 +59,7 @@ export function EmailCapture() {
           type="email"
           autoComplete="email"
           maxLength={254}
-          placeholder="Your work email here"
+          placeholder="Your email here"
           value={email}
           onChange={(e) => {
             setEmail(e.target.value);

@@ -29,12 +29,33 @@ const MAX_PER_IP = 5;
 const requestsByIp = new Map<string, number[]>();
 const lastSentByLead = new Map<string, number>();
 
+/**
+ * The IP the rate limiter buckets on, taken from the most trustworthy source
+ * available.
+ *
+ * x-forwarded-for is a list each proxy APPENDS to, so its leftmost entry is
+ * whatever the caller sent — reading that let anyone rotate the header and get
+ * a fresh bucket on every request, which made MAX_PER_IP meaningless. The
+ * rightmost entry is the one the edge actually observed, so that is the
+ * fallback; the platform's own connection header, where it exists, is better
+ * still because nothing upstream can forge it.
+ *
+ * Falling back to "unknown" means an unidentifiable caller shares one bucket
+ * with every other unidentifiable caller, which is the safe direction: local
+ * development lands there, not production.
+ */
 function clientIp(request: Request): string {
-  return (
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip") ||
-    "unknown"
-  );
+  const platform = request.headers.get("x-nf-client-connection-ip")?.trim();
+  if (platform) return platform;
+
+  const hops = (request.headers.get("x-forwarded-for") ?? "")
+    .split(",")
+    .map((hop) => hop.trim())
+    .filter(Boolean);
+  const nearest = hops[hops.length - 1];
+  if (nearest) return nearest;
+
+  return request.headers.get("x-real-ip")?.trim() || "unknown";
 }
 
 function isRateLimited(ip: string, now: number): boolean {
@@ -51,6 +72,50 @@ function isRateLimited(ip: string, now: number): boolean {
 
 function isTooLong(value: unknown, max: number): boolean {
   return value !== undefined && (typeof value !== "string" || value.length > max);
+}
+
+/** Longest any single answer can be. The form's own options are far shorter. */
+const MAX_ANSWER = 120;
+
+/**
+ * Why the answers object won't do, or null if it's fine.
+ *
+ * It arrives as free-form JSON, so none of it is trustworthy: only the four
+ * ids the form actually asks about are allowed, and each value has to be a
+ * string within the cap. Without this the values were never length-checked at
+ * all — isTooLong covered name and phone only — so a script could post a
+ * multi-megabyte answer and every accepted request became an email that size.
+ */
+function answersError(answers: unknown): string | null {
+  if (answers === undefined) return null;
+  if (typeof answers !== "object" || answers === null || Array.isArray(answers)) {
+    return "Malformed answers";
+  }
+
+  const asked = new Set<string>(fitQuestions.map((question) => question.id));
+  for (const [id, answer] of Object.entries(answers)) {
+    if (!asked.has(id)) return "Unknown answer";
+    if (typeof answer !== "string" || answer.length > MAX_ANSWER) {
+      return "Answer too long";
+    }
+  }
+  return null;
+}
+
+/**
+ * Flattens a value to a single line for the email body below.
+ *
+ * name, phone and the answers are length-capped but their *contents* are not,
+ * and that body is a list of `Label:  value` lines. A value carrying a newline
+ * could otherwise invent a line that looks exactly like one this file wrote —
+ * a forged Phone or Email field in an email that appears to come from the
+ * site. Other control characters go the same way.
+ */
+function oneLine(value: string): string {
+  return value
+    .replace(/[\u0000-\u001F\u007F\u2028\u2029]+/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 }
 
 export async function POST(request: Request) {
@@ -82,6 +147,11 @@ export async function POST(request: Request) {
 
   if (isTooLong(lead.name, 100) || isTooLong(lead.phone, 40)) {
     return Response.json({ error: "Field too long" }, { status: 400 });
+  }
+
+  const badAnswers = answersError(lead.answers);
+  if (badAnswers) {
+    return Response.json({ error: badAnswers }, { status: 400 });
   }
 
   const now = Date.now();
@@ -145,15 +215,16 @@ export async function POST(request: Request) {
  * filter on markup, and these only ever go to one inbox.
  */
 function asPlainText(heading: string, lead: Lead): string {
-  const lines = [heading, "", `Email:  ${lead.email}`];
+  const lines = [heading, "", `Email:  ${oneLine(lead.email)}`];
 
-  if (lead.name) lines.push(`Name:   ${lead.name}`);
-  if (lead.phone) lines.push(`Phone:  ${lead.phone}`);
+  if (lead.name) lines.push(`Name:   ${oneLine(lead.name)}`);
+  if (lead.phone) lines.push(`Phone:  ${oneLine(lead.phone)}`);
 
   if (lead.answers) {
     lines.push("", "Answers");
     for (const question of fitQuestions) {
-      lines.push(`  ${question.label}: ${lead.answers[question.id] ?? "(none)"}`);
+      const answer = lead.answers[question.id];
+      lines.push(`  ${question.label}: ${answer ? oneLine(answer) : "(none)"}`);
     }
   }
 

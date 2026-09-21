@@ -18,7 +18,7 @@ const sections = [
 
 export function SiteFooter() {
   return (
-    <footer className="w-full border-t border-line px-6 py-14 sm:py-16">
+    <footer className="w-full border-t border-line px-6 pt-8 pb-14 sm:pt-10 sm:pb-16">
       <div className="mx-auto flex max-w-3xl flex-col items-center gap-8 text-center">
         <Link href="/#top" aria-label={site.name} className="shrink-0">
           <Image

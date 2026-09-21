@@ -28,3 +28,15 @@ export const faqs = [
       "Yes, deliberately. It’s the reason I find what generalists miss. The deepest check I run reads your database policies against your actual data model, and that’s specific to Supabase. If you’re on something else, tell me on the form and I’ll say honestly whether any of it transfers. I’d rather tell you no than guess on a stack I don’t know.",
   },
 ] as const;
+
+/**
+ * TODO: The pricing question is hidden for now and will be added back. Not
+ * currently rendered — kept so the copy isn't lost. To restore it, move this
+ * entry back into `faqs` above, between "Do I have to sign up for monitoring
+ * to get audited?" and "Do you only work with Supabase?".
+ */
+export const hiddenPricingFaq = {
+  question: "How much does it cost?",
+  answer:
+    "Priced per project by complexity for the audit, a one-time fee for the monitoring install, and a wholesale rate per client roster if you resell it. Never per seat, never per hour. I’ll give you real numbers on the call once I know the shape of the app.",
+} as const;

@@ -2,6 +2,8 @@
 
 import { WistiaPlayer } from "@wistia/wistia-player-react";
 
+import { HERO_MAX_WIDTH, VIDEO_ASPECT } from "@/lib/video-sizing";
+
 /**
  * PLAYBACK SETTINGS LIVE IN WISTIA, NOT HERE.
  *
@@ -26,36 +28,6 @@ const MEDIA_ID = process.env.NEXT_PUBLIC_WISTIA_MEDIA_ID;
 /** Unset, or still carrying the placeholder .env.example ships with. */
 const isSet = (id?: string) => Boolean(id) && id !== "REPLACE_ME";
 
-/**
- * The source ratio of the media, which the player is NOT free to ignore.
- *
- * <wistia-player> derives its own height from the container width using the
- * media's real ratio. If the box reserved here disagrees, `overflow-hidden`
- * shears whichever edge overflows — and when the box is too short that takes
- * the control bar (fullscreen, captions, volume) with it. The symptom is
- * controls that seem "turned off" while Wistia's Customize panel insists
- * they're on.
- *
- * The current cut is 1920x1080, so this is a genuine 16:9 — but it is 16:9
- * because the media is, not because video usually is. An earlier cut was
- * 1660x1080 and needed that ratio here instead. Re-cut the video at another
- * size and this has to follow it; check the asset dimensions rather than
- * assuming.
- */
-const VIDEO_ASPECT = "16 / 9";
-
-/**
- * Fills whatever height the hero has left once everything else has its share,
- * then backs off by a tenth so the player doesn't crowd the headline above it
- * or the email capture below. Both terms carry the same reduction: on most
- * viewports the height-derived one is the smaller of the two and wins, so
- * trimming only the rem cap would change nothing on screens that matter.
- *
- * The ratio here converts leftover height into width, so it has to be the same
- * one the player actually uses — see VIDEO_ASPECT above.
- */
-const HERO_MAX_WIDTH = "min(50rem, calc((100svh - 29rem) * 16 / 9 * 0.9))";
-
 type ProofVideoProps = {
   /** CSS max-width for the player. Defaults to the hero's height-derived fit. */
   maxWidth?: string;
@@ -63,6 +35,11 @@ type ProofVideoProps = {
   className?: string;
 };
 
+/**
+ * The page carries one video, in the hero. There were two — a short cut here
+ * and a longer walkthrough in the service section — hence the `media` prop and
+ * the second env var this used to take; both are gone with the service player.
+ */
 export function ProofVideo({
   maxWidth = HERO_MAX_WIDTH,
   className = "mt-6",

@@ -1,3 +1,4 @@
+import { Carousel } from "@/components/carousel";
 import { Reveal } from "@/components/reveal";
 import { checks, checksIntro } from "@/lib/checks";
 
@@ -21,8 +22,37 @@ export function Checks() {
           </p>
         </Reveal>
 
+        {/*
+          On phones the six cards stacked into a long scroll, so below sm they
+          become the same one-at-a-time carousel as "Who this is for". The grid
+          takes over from sm up.
+        */}
         <Reveal>
-          <ul className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="reveal-item mt-12 sm:hidden">
+            <Carousel
+              label="What I check"
+              itemName="check"
+              boxClassName="mx-auto w-full max-w-sm px-6 py-8"
+              showCounter={false}
+              slides={checks.map((check) => ({
+                key: check.question,
+                content: (
+                  <>
+                    <h3 className="text-lg leading-snug font-medium tracking-[-0.01em] text-white">
+                      {check.question}
+                    </h3>
+                    <p className="mt-3 text-sm leading-relaxed text-white/55">
+                      {check.body}
+                    </p>
+                  </>
+                ),
+              }))}
+            />
+          </div>
+        </Reveal>
+
+        <Reveal>
+          <ul className="mt-14 hidden gap-4 sm:grid sm:grid-cols-2 lg:grid-cols-3">
             {checks.map((check, i) => (
               <li
                 key={check.question}

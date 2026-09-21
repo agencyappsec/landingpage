@@ -18,7 +18,7 @@ export function Faq() {
   const [open, setOpen] = useState<number | null>(null);
 
   return (
-    <section id="faq" className="w-full px-6 pb-24 sm:pb-32">
+    <section id="faq" className="w-full px-6 pb-12 sm:pb-16">
       <div className="mx-auto max-w-3xl">
         <Reveal>
           <h2 className="reveal-item font-brand text-center text-[clamp(1.9rem,4vw,3.25rem)] leading-[1.1] font-semibold tracking-[-0.03em] text-white">
